@@ -14,9 +14,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const BIN = join(REPO_ROOT, "bin", "tasks-axi.ts");
-const REGISTER = fileURLToPath(
-  new URL("../fixtures/module-trace-register.mjs", import.meta.url),
-);
+const REGISTER = new URL(
+  "../fixtures/module-trace-register.mjs",
+  import.meta.url,
+).href;
 
 const { version: PKG_VERSION } = JSON.parse(
   readFileSync(join(REPO_ROOT, "package.json"), "utf8"),
