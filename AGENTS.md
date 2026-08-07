@@ -66,6 +66,13 @@ The CLI layer never knows which backend is active — it only talks to the `Stor
   This lets an agent confirm a write deterministically without a follow-up read.
   Errors still use structured-error output + non-zero exit (not JSON), so `exit 0` + `ok:true` = success.
 
+## Entry point & the `--version` fast path
+
+`bin/tasks-axi.ts` answers a bare `-v`/`-V`/`--version` through `axi-sdk-js/fast-path` and only then `await import`s `src/cli.js`, so the heavy command graph never loads for a version query (~31ms -> ~20ms, the node floor).
+That makes `src/version.ts` a **leaf**: it may import node builtins and nothing else - importing anything from the command graph silently destroys the speedup. `cli.ts` re-imports `VERSION` from it, so there is still one source of the version string.
+Any argv shape other than exactly one version flag falls through to `runAxiCli`, which remains the sole owner of the general case (e.g. `list --version` is still an unknown-flag error).
+`test/bin/version-fast-path.test.ts` guards this deterministically with an ESM loader module trace (`test/fixtures/module-trace-*.mjs`) plus a negative control; do **not** add a wall-clock timing assertion to CI - it is flaky under runner contention.
+
 ## Build / test / ship
 
 - `pnpm build` (tsc), `pnpm test` (vitest, `test/` mirrors `src/`), `pnpm lint` (eslint), `pnpm run build:skill -- --check` (the generated `skills/tasks-axi/SKILL.md` is built from `DESCRIPTION` + `TOP_HELP` and must not drift — CI runs the check).
