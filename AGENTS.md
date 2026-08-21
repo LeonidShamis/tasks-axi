@@ -89,6 +89,7 @@ Any argv shape other than exactly one version flag falls through to `runAxiCli`,
   In a fresh clone, run `pnpm install --frozen-lockfile` before manual pack or publish.
   Verify with `npm pack --dry-run` (no source/test cruft; bin is `dist/bin/tasks-axi.js` with its shebang preserved by tsc).
 - **CI is a 3-OS matrix** (ubuntu/macos/windows) running install → build → lint → test → `build:skill --check`. The `Require no-mistakes` and `Guard generated files` checks gate every PR to `main`.
+- **The `Require no-mistakes` gate is mirrored verbatim from gh-axi.** Its inline `run:` script (signature + `no-mistakes-pipeline-attestation:v1` comment, requiring `review`/`test`/`document` all `completed`, failing closed on skip markers or malformed JSON) is copied byte-for-byte across the `*-axi` siblings; only this repo's `on:`/`if:`/`concurrency` are local. `test/workflows/no-mistakes-gate.test.ts` extracts that exact block from the YAML and executes it against fixtures, so edit the workflow, never a copy of the script. That test runs on the POSIX matrix legs only - Windows `jq` emits CRLF, which the ubuntu-only gate script has no reason to tolerate.
 
 ## Follow-ups (out of P1 scope)
 
