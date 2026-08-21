@@ -31,19 +31,24 @@ function extractGateScript(): string {
 const scriptPath = join(mkdtempSync(join(tmpdir(), "nm-gate-")), "gate.sh");
 writeFileSync(scriptPath, extractGateScript());
 
-// Probing the tool itself keeps this working on the Windows leg of the test
-// matrix, where `sh -c "command -v ..."` is not a reliable detector.
 function hasCommand(command: string): boolean {
-  return spawnSync(command, ["--version"], { stdio: "ignore" }).status === 0;
+  return spawnSync("sh", ["-c", `command -v ${command}`]).status === 0;
 }
 
 // The gate is a bash script that parses JSON with jq, exactly as the
-// ubuntu-latest runner that executes it does. Never skip on the POSIX CI legs:
-// a silently skipped gate test is worse than no test. Locally - and on the
-// Windows leg, which never runs this workflow - skip when bash or jq is absent
-// rather than failing over an unrelated missing tool.
-const runnable = hasCommand("bash") && hasCommand("jq");
-if (process.env.CI && !runnable && process.platform !== "win32") {
+// ubuntu-latest runner this workflow pins does - and only there. The Windows
+// leg of this repo's test matrix is deliberately excluded: its jq writes CRLF
+// line endings, so every verdict the script reads back would carry a trailing
+// \r and fail on an environment the gate never actually runs in. The gate
+// script must stay byte-identical to the sibling repos', so the platform is
+// filtered here rather than the script being made CRLF-tolerant.
+const posix = process.platform !== "win32";
+const runnable = posix && hasCommand("bash") && hasCommand("jq");
+
+// Never skip on the POSIX CI legs: a silently skipped gate test is worse than
+// no test. Locally, skip when bash or jq is absent rather than failing a
+// contributor's `pnpm test` over an unrelated missing tool.
+if (process.env.CI && posix && !runnable) {
   throw new Error(
     "CI must provide bash and jq to exercise the no-mistakes gate",
   );
