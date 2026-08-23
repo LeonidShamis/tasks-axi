@@ -36,7 +36,7 @@ See the [no-mistakes quick start](https://kunchenguid.github.io/no-mistakes/star
 - Run the full gate before pushing: `pnpm build && pnpm lint && pnpm test && pnpm run build:skill -- --check`.
 - The CLI layer only talks to the `Store` interface; backends slot in behind it without touching command code.
 - Do not hand-edit `CHANGELOG.md` or `.release-please-manifest.json` - release-please owns them.
-- Do not hand-edit `skills/tasks-axi/SKILL.md` - it is generated from the CLI's own description and help by `pnpm run build:skill`. Regenerate and commit it after changing the description or top-level help; CI fails if it is stale.
+- Do not hand-edit `skills/tasks-axi/SKILL.md` - `pnpm run build:skill` generates a minimal CLI-deferring stub. Keep commands, flags, and workflows in CLI output as the single source of truth; regenerate and commit the skill after changing its generator or shared description. CI fails if it is stale.
 
 ## Release and Packaging
 
