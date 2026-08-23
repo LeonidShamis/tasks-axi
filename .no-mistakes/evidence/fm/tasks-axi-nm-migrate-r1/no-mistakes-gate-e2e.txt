@@ -1,0 +1,70 @@
+=== Normalized caller contract ===
+{
+  "pull_request": {
+    "types": [
+      "opened",
+      "edited",
+      "reopened"
+    ],
+    "branches": [
+      "main"
+    ],
+    "paths-ignore": [
+      ".release-please-manifest.json",
+      "CHANGELOG.md",
+      "package.json"
+    ]
+  },
+  "permissions": {
+    "contents": "read"
+  },
+  "concurrency": {
+    "group": "no-mistakes-required-${{ github.event.pull_request.number }}-${{ (github.event.action == 'opened' || github.event.action == 'edited') && github.run_id || 'head-change' }}",
+    "cancel-in-progress": true
+  },
+  "job": {
+    "name": "PR must be raised via no-mistakes",
+    "runs_on": "ubuntu-latest",
+    "if": "github.event.pull_request.user.login != 'github-actions[bot]' && github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.user.login != 'release-please[bot]'",
+    "steps": [
+      {
+        "name": "Verify no-mistakes signature and pipeline attestation in PR body",
+        "uses": "kunchenguid/no-mistakes/.github/actions/require-no-mistakes@32d396ac0f29135daf7fcb9964aba9d5f4e796d6"
+      }
+    ]
+  }
+}
+
+=== Pinned action manifest ===
+{
+  "name": "Require no-mistakes",
+  "using": "composite",
+  "step": {
+    "name": "Verify no-mistakes signature and pipeline attestation",
+    "shell": "bash"
+  }
+}
+
+=== End-user gate result: current-head attestation with last duplicate record completed ===
+Found no-mistakes signature in PR #42 body.
+Found structurally compliant pipeline step attestation.
+::warning::PR-body attestation is author-editable and is not cryptographic proof that no-mistakes produced it.
+exempt=false
+compliant=true
+
+=== End-user gate result: stale attestation after later push ===
+::error::Pipeline attestation head_sha does not match the current PR head.
+
+attestation.head_sha: 9ea7d1d8648d2fa012a74ac45e21cac589c62407
+PR head: 0000000000000000000000000000000000000000
+
+A later push must not pass on an older attestation. Re-run 'git push no-mistakes' so the PR body attestation binds to the current head.
+
+See CONTRIBUTING.md for setup and the full workflow.
+
+PR author: somedev
+Found no-mistakes signature in PR #42 body.
+exempt=false
+compliant=false
+exempt=false
+exit_status=1
